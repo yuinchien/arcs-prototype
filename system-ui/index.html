@@ -1,0 +1,536 @@
+<html>
+<head>
+  <title>Arcs</title>
+  <script src="bounce.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans:400,500,700" rel="stylesheet">
+  <style>
+  * {
+    -webkit-user-select: none;  /* Chrome all / Safari all */
+    -moz-user-select: none;     /* Firefox all */
+    -ms-user-select: none;      /* IE 10+ */
+    user-select: none;
+  }
+  body {
+    font-family: 'Google Sans', sans-serif;
+    margin: 0;
+    overflow-x: hidden;
+    overflow-y: hidden;
+  }
+  #app {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+  }
+  @font-face {
+    font-family: 'Material Icons';
+    font-style: normal;
+    font-weight: 400;
+    src: url(https://fonts.gstatic.com/s/materialicons/v30/2fcrYFNaTjcS6g4U3t-Y5ZjZjT5FdEJ140U2DJYC3mY.woff2) format('woff2');
+  }
+  .material-icons {
+    font-family: "Material Icons";
+    font-size: 24px;
+    font-style: normal;
+    -webkit-font-feature-settings: "liga";
+    -webkit-font-smoothing: antialiased;
+    vertical-align: middle;
+    cursor: pointer;
+    user-select: none;
+    background: none;
+    border: none;
+  }
+  #bottom-sheet {
+    position: relative;
+    top: calc(100% - 56px);
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    max-width: 400px;
+    height: 50%;
+    -webkit-transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+    -webkit-transition: .15s all;
+    animation: slideOpen 1.5s ease infinite;
+  }
+    #bottom-sheet .wrapper {
+      position: relative;
+      border-top-right-radius: 2px;
+      border-top-left-radius: 2px;
+      background: white;
+      height: 100%;
+    }
+
+  #touch-spacer {
+    height: 40px;
+  }
+  /* #bottom-sheet:hover {
+    -webkit-transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, -40, 0, 1);
+  }
+  #bottom-sheet.semni-open:hover {
+    -webkit-transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, -100, 0, 1);
+  } */
+  /* #bottom-sheet.open .wrapper {
+    border-top-right-radius: 16px;
+    border-top-left-radius: 16px;
+  } */
+  /* #bottom-sheet.open .topbar {
+    opacity: 1;
+  } */
+
+  #bottom-sheet[type="default"] #content-default,
+  #bottom-sheet[type="default"] .topbar.default,
+  #bottom-sheet[type="search"] #content-search,
+  #bottom-sheet[type="search"] .topbar.search,
+  #bottom-sheet[type="settings"] #content-settings,
+  #bottom-sheet[type="settings"] .topbar.settings {
+    display: block;
+  }
+
+  #signifier {
+    position: absolute;
+    width: 32px;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(0,0,0,.1);
+    top: 6px;
+    left: calc(50% - 16px);
+  }
+  .flexbox {
+    display: flex;
+  }
+  .flexbox.row {
+    flex-direction: row;
+  }
+  .flexbox.col {
+    flex-direction: column;
+  }
+  .flex {
+    flex: 1;
+  }
+  .button {
+    opacity: .8;
+    -webkit-transition: .1s margin;
+  }
+  .button:hover {
+    opacity: 1;
+  }
+  .border-bottom {
+    position: relative;
+  }
+  .border-bottom::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 1px;
+    background: rgba(0,0,0,.05);
+  }
+  .topbar {
+    display: none;
+    align-items: center;
+  }
+
+  textarea, input, button { outline: none; }
+  input {
+    font-size: 16px;
+    font-family: 'Google Sans';
+    border: none;
+    line-height: 24px;
+  }
+  .spacer {
+    height: 100%;
+    line-height: 58px;
+    font-size: 16px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  #bottom-sheet[type="default"] .topbar[type="default"],
+  #bottom-sheet[type="settings"] .topbar[type="settings"],
+  #bottom-sheet[type="search"] .topbar[type="search"] {
+    display: flex;
+  }
+
+  #bottom-sheet .topbar {
+    justify-content: space-between;
+    height: 56px;
+    cursor: pointer;
+  }
+  #bottom-sheet .topbar .buttons {
+    padding-right: 4px;
+  }
+  #bottom-sheet .buttons .button {
+    padding: 16px 12px;
+  }
+  #bottom-sheet .button {
+    padding: 16px;
+  }
+  #logo {
+    width: 24px;
+    height: 24px;
+    padding: 16px;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: 24px 24px;
+    background-image: url(logo_24x24.svg);
+  }
+  .content-wrapper > div {
+    display: none;
+  }
+  #content-default {
+    padding: 10px;
+  }
+  #content-settings {
+    padding-top: 8px;
+  }
+  #content-settings > div {
+    align-items: center;
+    padding-left: 16px;
+  }
+  .chip {
+    border: 1px solid rgba(0,0,0,.1);
+    border-radius: 16px;
+    height: 32px;
+    display: inline-block;
+    font-size: 16px;
+    line-height: 32px;
+    margin: 6px;
+    padding: 0 14px;
+    box-sizing: border-box;
+    letter-spacing: .25px;
+    cursor: pointer;
+    -webkit-transition: .15s all;
+  }
+  .chip:hover {
+    border: 1px solid rgba(0,0,0,.15);
+    background: rgba(0,0,0,.04);
+  }
+  .profile {
+    width: 24px;
+    height: 24px;
+    margin: 16px;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: 24px 24px;
+    border-radius: 12px;
+  }
+  .profile.yuin {
+    background-image: url(profile_yuin.png);
+  }
+
+  ::-webkit-scrollbar { width: 0; }
+
+  #bottom-sheet .wrapper::before {
+    position: absolute;
+    content: '';
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: -1;
+    height: 100%;
+    width: 100%;
+    margin: 0 auto;
+    filter: blur(12px);
+    background: rgba(0,0,0,.15);
+    animation: stopGlow 1.5s ease 1;
+  }
+  #bottom-sheet.glow .wrapper::before {
+    filter: blur(20px);
+    background: rgba(94,213,227,1);
+    /* rgba(32,231,255,1); */
+    animation: animateGlow 1.5s ease infinite;
+  }
+    #bottom-sheet.open.glow .wrapper::before {
+      background: rgba(94,213,227,.5);
+    }
+
+  @keyframes animateGlow {
+    0%  {
+      filter: blur(20px);
+      opacity: 1;
+      -webkit-animation-timing-function: ease-in;
+    }
+    50% {
+      filter: blur(12px);
+      opacity: .5;
+      -webkit-animation-timing-function: linear;
+    }
+    100% {
+      opacity: 1;
+      filter: blur(20px);
+      -webkit-animation-timing-function: ease-out;
+    }
+  }
+  @keyframes stopGlow {
+    0%  {
+      filter: blur(20px);
+      opacity: 1;
+      background: rgba(94,213,227,.5);
+      -webkit-animation-timing-function: ease-in;
+    }
+    50% {
+      filter: blur(12px);
+      opacity: .5;
+      -webkit-animation-timing-function: linear;
+    }
+    100% {
+      filter: blur(12px);
+      background: rgba(0,0,0,.15);
+      opacity: 1;
+      -webkit-animation-timing-function: ease-out;
+    }
+  }
+  #caption {
+    font-size: 40px;
+    opacity: .8;
+    top: 50%;
+    left: 50%;
+    width: 400px;
+    height: 200px;
+    margin: -100px -200px;
+    text-align: center;
+    position: absolute;
+  }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div id="caption">Arc Launcher</div>
+    <div id="bottom-sheet-shield"></div>
+
+    <div id="bottom-sheet" type="default">
+
+      <div id="touch-spacer"></div>
+      <div class="wrapper">
+        <div class="topbar flexbox row border-bottom" type="default">
+          <div id="logo" class="button"></div>
+          <div class="spacer flex"></div>
+          <div class="buttons flexbox row">
+            <div class="button-search button"><i class="material-icons">search</i></div>
+            <div class="button-more button"><i class="material-icons">more_vert</i></div>
+          </div>
+        </div>
+        <div class="topbar flexbox row border-bottom" type="search">
+          <div class="button-search button"><i class="material-icons">search</i></div>
+          <input id="arcs-search" class="flex" placeholder="Search" />
+          <div class="button-close button"><i class="material-icons">close</i></div>
+        </div>
+        <div class="topbar flexbox row border-bottom" type="settings">
+          <div class="profile yuin"></div>
+          <div class="spacer flex"></div>
+          <div class="button-close button"><i class="material-icons">close</i></div>
+        </div>
+        <div class="content-wrapper">
+          <div id="content-default">
+            <div class="chip">See friends’ latest blog posts</div>
+            <div class="chip">Play words game</div>
+            <div class="chip">Make a reservation</div>
+            <div class="chip">Find restaurants near my location</div>
+            <div class="chip">Select your favorite foods</div>
+            <div class="chip">Create a wishlist and share with friends</div>
+            <div class="chip">Checkout tv shows tonight</div>
+          </div>
+          <div id="content-search">
+          </div>
+          <div id="content-settings">
+            <div class="flexbox flex">
+              <div class="flex">Star this Arc</div>
+              <div class="button-star button"><i class="material-icons">star_border</i></div>
+            </div>
+            <div class="flexbox flex">
+              <div class="flex">Use for Suggestions</div>
+              <div class="button-checkbox button"><i class="material-icons">check_box</i></div>
+            </div>
+            <div class="flexbox flex">
+              <div class="flex">Share with People</div>
+              <div class="button-share button"><i class="material-icons">person_add</i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+  <script>
+    $(document).ready(function(){
+      var Y_OPEN = -320;
+      var bottomsheet = $('#bottom-sheet');
+
+      function simulate() {
+        if(!bottomsheet.hasClass('glow')) {
+          bottomsheet.addClass('glow');
+          setTimeout(function(){
+            bottomsheet.removeClass('glow')
+            if( !bottomsheet.hasClass('open') ) {
+              bottomsheet.addClass('semi-open').removeClass('peeping');
+              // TO semi-open
+              var bounce = new Bounce();
+              bounce
+                .translate({
+                  from: { y: 0 },
+                  to: { y: -100 },
+                  duration: 1000,
+                  stiffness: 2
+                })
+                .applyTo(bottomsheet);
+            }
+          },3000);
+        }
+      }
+      simulate();
+
+      $( "body" ).keyup(function( e ) {
+        var s = String.fromCharCode(e.which);
+        if(s=='R') {
+          simulate();
+        }
+      });
+
+      bottomsheet.find('.topbar .spacer').click(function() {
+        if(bottomsheet.hasClass('open')) {
+          bottomsheet.removeClass('open');
+          // TO close
+          var bounce = new Bounce();
+          bounce
+            .translate({
+              from: { y: Y_OPEN },
+              to: { y: 0 },
+              duration: 1500,
+              stiffness: 4
+            })
+            .applyTo(bottomsheet);
+        } else if(bottomsheet.hasClass('semi-open')) {
+          bottomsheet.removeClass('semi-open').addClass('open');
+          // TO open
+          var bounce = new Bounce();
+          bounce
+            .translate({
+              from: { y: -100 },
+              to: { y: Y_OPEN },
+              duration: 1500,
+              stiffness: 4
+            })
+            .applyTo(bottomsheet);
+        } else if(bottomsheet.hasClass('peeping')) {
+          bottomsheet.removeClass('peeping').addClass('open');
+          // TO open
+          var bounce = new Bounce();
+          bounce
+            .translate({
+              from: { y: -40 },
+              to: { y: Y_OPEN },
+              duration: 1500,
+              stiffness: 4
+            })
+            .applyTo(bottomsheet);
+        }
+
+      });
+
+      bottomsheet.find('.topbar').mouseenter(function(){
+
+        if(!bottomsheet.hasClass('open') && !bottomsheet.hasClass('semi-open') && !bottomsheet.hasClass('peeping')) {
+          console.log('in');
+          bottomsheet.addClass('peeping');
+          var bounce = new Bounce();
+          bounce
+            .translate({
+              from: { y: 0 },
+              to: { y: -40 },
+              duration: 1000,
+              bounces: 2,
+              stiffness: 2
+            })
+            .applyTo(bottomsheet);
+        }
+      }).mouseleave( function(){
+        if( bottomsheet.hasClass('peeping') ) {
+          console.log('out');
+          bottomsheet.removeClass('peeping');
+          var bounce = new Bounce();
+          bounce
+            .translate({
+              from: { y: -40 },
+              to: { y: 0 },
+              duration: 1000,
+              bounces: 2,
+              stiffness: 2
+            })
+            .applyTo(bottomsheet);
+        }
+      });
+
+      function activateBottomSheet() {
+        if(!bottomsheet.hasClass('open')) {
+          var fromY = -40;
+          bottomsheet.addClass('open');
+          if( bottomsheet.hasClass('peeping') ) {
+            bottomsheet.removeClass('peeping');
+          } else if( bottomsheet.hasClass('semi-open') ) {
+            fromY = -100;
+            bottomsheet.removeClass('semi-open');
+          }
+          var bounce = new Bounce();
+          bounce
+            .translate({
+              from: { y: fromY },
+              to: { y: Y_OPEN },
+              duration: 1500,
+              stiffness: 4
+            })
+            .applyTo(bottomsheet);
+        }
+      }
+      function loadArc(title) {
+        // CLOSE SHEET
+        $('#caption').text(title);
+        bottomsheet.find('.topbar .spacer').html(title);
+        bottomsheet.removeClass('open');
+        var fromY = Y_OPEN;
+        if( bottomsheet.hasClass('semi-open') ) {
+          bottomsheet.removeClass('semi-open');
+          fromY = -100;
+        }
+        var bounce = new Bounce();
+        bounce
+          .translate({
+            from: { y: fromY },
+            to: { y: -40 },
+            duration: 1500,
+            stiffness: 4
+          })
+          .applyTo(bottomsheet);
+
+        simulate();
+        // if(!bottomsheet.hasClass('glow')) {
+        //   bottomsheet.addClass('glow');
+        //   setTimeout(function(){
+        //     bottomsheet.removeClass('glow');
+        //   },3000);
+        // }
+
+      }
+
+      bottomsheet.find('.chip').click(function(e){
+        loadArc($(this).text());
+      });
+      bottomsheet.find('.topbar .button-search').click(function(){
+        bottomsheet.attr('type','search');
+        $('#arcs-search').focus();
+        activateBottomSheet();
+      });
+      bottomsheet.find('.topbar .button-close').click(function(){
+        bottomsheet.attr('type','default');
+        bottomsheet.removeClass('peeping');
+        $('#arcs-search').focus();
+      });
+      bottomsheet.find('.button-more').click(function(){
+        bottomsheet.attr('type','settings');
+        activateBottomSheet();
+      });
+
+    });
+  </script>
+</body>
+</html>
