@@ -63,19 +63,6 @@
   #touch-spacer {
     height: 40px;
   }
-  /* #bottom-sheet:hover {
-    -webkit-transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, -40, 0, 1);
-  }
-  #bottom-sheet.semni-open:hover {
-    -webkit-transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, -100, 0, 1);
-  } */
-  /* #bottom-sheet.open .wrapper {
-    border-top-right-radius: 16px;
-    border-top-left-radius: 16px;
-  } */
-  /* #bottom-sheet.open .topbar {
-    opacity: 1;
-  } */
 
   #bottom-sheet[type="default"] #content-default,
   #bottom-sheet[type="default"] .topbar.default,
@@ -234,13 +221,13 @@
     background: rgba(0,0,0,.15);
     animation: stopGlow 1.5s ease 1;
   }
-  #bottom-sheet.glow .wrapper::before {
+  body.glow #bottom-sheet .wrapper::before {
     filter: blur(20px);
     background: rgba(94,213,227,1);
     /* rgba(32,231,255,1); */
     animation: animateGlow 1.5s ease infinite;
   }
-    #bottom-sheet.open.glow .wrapper::before {
+  body.open.glow #bottom-sheet .wrapper::before {
       background: rgba(94,213,227,.5);
     }
 
@@ -291,11 +278,26 @@
     text-align: center;
     position: absolute;
   }
+  #bottom-sheet-shield {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background: white;
+    opacity: 0;
+    pointer-events: none;
+    -webkit-transition: .15s opacity;
+  }
+  body.open #bottom-sheet-shield {
+    pointer-events: auto;
+    opacity: .8;
+  }
   </style>
 </head>
-<body>
+<body class="launcher">
   <div id="app">
-    <div id="caption">Arc Launcher</div>
+    <div id="caption">Arcs Launcher</div>
     <div id="bottom-sheet-shield"></div>
 
     <div id="bottom-sheet" type="default">
@@ -311,27 +313,20 @@
           </div>
         </div>
         <div class="topbar flexbox row border-bottom" type="search">
-          <div class="button-search button"><i class="material-icons">search</i></div>
+          <div class="button-close button"><i class="material-icons">arrow_back</i></div>
+
           <input id="arcs-search" class="flex" placeholder="Search" />
-          <div class="button-close button"><i class="material-icons">close</i></div>
+          <!-- <div class="button-search button"><i class="material-icons">search</i></div>           -->
         </div>
         <div class="topbar flexbox row border-bottom" type="settings">
-          <div class="profile yuin"></div>
+          <div class="button-close button"><i class="material-icons">arrow_back</i></div>
+
           <div class="spacer flex"></div>
-          <div class="button-close button"><i class="material-icons">close</i></div>
+          <div class="profile yuin"></div>
         </div>
         <div class="content-wrapper">
-          <div id="content-default">
-            <div class="chip">See friends’ latest blog posts</div>
-            <div class="chip">Play words game</div>
-            <div class="chip">Make a reservation</div>
-            <div class="chip">Find restaurants near my location</div>
-            <div class="chip">Select your favorite foods</div>
-            <div class="chip">Create a wishlist and share with friends</div>
-            <div class="chip">Checkout tv shows tonight</div>
-          </div>
-          <div id="content-search">
-          </div>
+          <div id="content-default"></div>
+          <div id="content-search"></div>
           <div id="content-settings">
             <div class="flexbox flex">
               <div class="flex">Star this Arc</div>
@@ -354,166 +349,160 @@
   </div>
   <script>
     $(document).ready(function(){
-      var Y_OPEN = -320;
+
+      var POSITION = {
+        'open' : -320,
+        'semi-open' : -100,
+        'peeping' : -40,
+        'close' : 0,
+        'navigating' : -40,
+      };
+      var CHIPS = [
+        "See friends’ latest blog posts",
+        "Make a reservation",
+        "Play word game",
+        "Find restaurants near my location",
+        "Select your favorite foods",
+        "Create a wishlist and share with friends",
+        "Checkout tv shows tonight",
+      ];
+
       var bottomsheet = $('#bottom-sheet');
+      var body = $('body');
+      var contentDefault = $('#content-default');
+
+      function Shuffle(o) {
+      	for(var j, x, i = o.length; i; j = parseInt(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
+      	return o;
+      };
 
       function simulate() {
-        if(!bottomsheet.hasClass('glow')) {
-          bottomsheet.addClass('glow');
+        console.log( 'simulate' );
+        if(!body.hasClass('glow')) {
+          body.addClass('glow');
+
+          var _chips = Shuffle(CHIPS);
+          var randomTotal = Math.floor( Math.random() * _chips.length );
+          randomTotal = (randomTotal<3) ? 3 : randomTotal;
+
+          contentDefault.empty();
+          for(var i=0; i<randomTotal; i++) {
+            contentDefault.append('<div class="chip">'+_chips[i]+'</div>');
+          }
+
           setTimeout(function(){
-            bottomsheet.removeClass('glow')
-            if( !bottomsheet.hasClass('open') ) {
-              bottomsheet.addClass('semi-open').removeClass('peeping');
-              // TO semi-open
-              var bounce = new Bounce();
-              bounce
-                .translate({
-                  from: { y: 0 },
-                  to: { y: -100 },
-                  duration: 1000,
-                  stiffness: 2
-                })
-                .applyTo(bottomsheet);
+            body.removeClass('glow');
+            if( body.hasClass('open') || body.hasClass('semi-open')) {
+              return;
             }
+            if( body.hasClass('navigating') ) {
+              updateBottomsheetPosition('navigating', 'semi-open');
+            } else {
+              updateBottomsheetPosition('close', 'semi-open');
+            }
+
           },3000);
         }
       }
+
       simulate();
 
-      $( "body" ).keyup(function( e ) {
+      body.keyup(function( e ) {
         var s = String.fromCharCode(e.which);
         if(s=='R') {
           simulate();
         }
       });
 
+      $('#bottom-sheet-shield').click(function(){
+        console.log('#bottom-sheet-shield');
+        if( body.hasClass('open') ) {
+          updateBottomsheetPosition('open', 'close');
+        }
+      });
+
+      function updateBottomsheetPosition(from, to) {
+        body.removeClass(from).addClass(to);
+        var bounce = new Bounce();
+
+        bounce
+          .translate({
+            from: { y: POSITION[from] },
+            to: { y: POSITION[to] },
+            duration: Math.abs(POSITION[from]-POSITION[to])<50 ? 1000 : 1500,
+            stiffness: 4,
+          })
+          .applyTo(bottomsheet);
+      }
       bottomsheet.find('.topbar .spacer').click(function() {
-        if(bottomsheet.hasClass('open')) {
-          bottomsheet.removeClass('open');
-          // TO close
-          var bounce = new Bounce();
-          bounce
-            .translate({
-              from: { y: Y_OPEN },
-              to: { y: 0 },
-              duration: 1500,
-              stiffness: 4
-            })
-            .applyTo(bottomsheet);
-        } else if(bottomsheet.hasClass('semi-open')) {
-          bottomsheet.removeClass('semi-open').addClass('open');
-          // TO open
-          var bounce = new Bounce();
-          bounce
-            .translate({
-              from: { y: -100 },
-              to: { y: Y_OPEN },
-              duration: 1500,
-              stiffness: 4
-            })
-            .applyTo(bottomsheet);
-        } else if(bottomsheet.hasClass('peeping')) {
-          bottomsheet.removeClass('peeping').addClass('open');
-          // TO open
-          var bounce = new Bounce();
-          bounce
-            .translate({
-              from: { y: -40 },
-              to: { y: Y_OPEN },
-              duration: 1500,
-              stiffness: 4
-            })
-            .applyTo(bottomsheet);
+        console.log('spacer click');
+        if(body.hasClass('open')) {
+          updateBottomsheetPosition('open', 'close');
+        } else if(body.hasClass('semi-open')) {
+          updateBottomsheetPosition('semi-open', 'open');
+        } else if(body.hasClass('peeping')) {
+          updateBottomsheetPosition('peeping', 'open');
+        } else if(body.hasClass('navigating')) {
+          updateBottomsheetPosition('navigating', 'open');
         }
 
       });
 
       bottomsheet.find('.topbar').mouseenter(function(){
-
-        if(!bottomsheet.hasClass('open') && !bottomsheet.hasClass('semi-open') && !bottomsheet.hasClass('peeping')) {
+        if(!body.hasClass('open') && !body.hasClass('semi-open') && !body.hasClass('peeping') && !body.hasClass('navigating')) {
           console.log('in');
-          bottomsheet.addClass('peeping');
-          var bounce = new Bounce();
-          bounce
-            .translate({
-              from: { y: 0 },
-              to: { y: -40 },
-              duration: 1000,
-              bounces: 2,
-              stiffness: 2
-            })
-            .applyTo(bottomsheet);
+          updateBottomsheetPosition('close', 'peeping');
         }
-      }).mouseleave( function(){
-        if( bottomsheet.hasClass('peeping') ) {
-          console.log('out');
-          bottomsheet.removeClass('peeping');
-          var bounce = new Bounce();
-          bounce
-            .translate({
-              from: { y: -40 },
-              to: { y: 0 },
-              duration: 1000,
-              bounces: 2,
-              stiffness: 2
-            })
-            .applyTo(bottomsheet);
+      }).mouseleave( function(e){
+        // console.log('LEAVE');
+        // console.log('screenX Y',e.screenX, e.screenY);
+        // console.log('clientX Y',e.clientX, e.clientY);
+        // console.log('window.innerHeight',window.innerHeight);
+        if( (window.innerHeight-e.clientY)<10 ) {
+          return;
+        }
+        if( body.hasClass('peeping') ) {
+          updateBottomsheetPosition('peeping', 'close');
         }
       });
 
       function activateBottomSheet() {
-        if(!bottomsheet.hasClass('open')) {
-          var fromY = -40;
-          bottomsheet.addClass('open');
-          if( bottomsheet.hasClass('peeping') ) {
-            bottomsheet.removeClass('peeping');
-          } else if( bottomsheet.hasClass('semi-open') ) {
-            fromY = -100;
-            bottomsheet.removeClass('semi-open');
+        if(!body.hasClass('open')) {
+          if( body.hasClass('peeping') ) {
+            updateBottomsheetPosition('peeping', 'open');
+          } else if( body.hasClass('navigating') ) {
+            updateBottomsheetPosition('navigating', 'open');
+          } else if( body.hasClass('semi-open') ) {
+            updateBottomsheetPosition('semi-open', 'open');
           }
-          var bounce = new Bounce();
-          bounce
-            .translate({
-              from: { y: fromY },
-              to: { y: Y_OPEN },
-              duration: 1500,
-              stiffness: 4
-            })
-            .applyTo(bottomsheet);
         }
       }
-      function loadArc(title) {
+
+      function navigate(title) {
         // CLOSE SHEET
         $('#caption').text(title);
-        bottomsheet.find('.topbar .spacer').html(title);
-        bottomsheet.removeClass('open');
-        var fromY = Y_OPEN;
-        if( bottomsheet.hasClass('semi-open') ) {
-          bottomsheet.removeClass('semi-open');
-          fromY = -100;
+        if(title=='Arcs Launcher') {
+          bottomsheet.find('.topbar .spacer').html('');
+        } else {
+          bottomsheet.find('.topbar .spacer').html(title);
         }
-        var bounce = new Bounce();
-        bounce
-          .translate({
-            from: { y: fromY },
-            to: { y: -40 },
-            duration: 1500,
-            stiffness: 4
-          })
-          .applyTo(bottomsheet);
-
+        if( body.hasClass('semi-open') ) {
+          updateBottomsheetPosition('semi-open', 'navigating');
+        } else if( body.hasClass('open') ) {
+          updateBottomsheetPosition('open', 'navigating');
+        }
         simulate();
-        // if(!bottomsheet.hasClass('glow')) {
-        //   bottomsheet.addClass('glow');
-        //   setTimeout(function(){
-        //     bottomsheet.removeClass('glow');
-        //   },3000);
-        // }
-
       }
+      $('#logo').click(function(){
+        if(!body.hasClass('launcher')) {
+          body.addClass('launcher');
+          navigate('Arcs Launcher');
+        }
+      });
 
-      bottomsheet.find('.chip').click(function(e){
-        loadArc($(this).text());
+      bottomsheet.on( "click", ".chip", function() {
+        body.removeClass('launcher');
+        navigate($(this).text());
       });
       bottomsheet.find('.topbar .button-search').click(function(){
         bottomsheet.attr('type','search');
