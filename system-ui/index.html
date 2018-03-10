@@ -268,8 +268,7 @@
     }
   }
   #caption {
-    font-size: 40px;
-    opacity: .8;
+    font-size: 32px;
     top: 50%;
     left: 50%;
     width: 400px;
@@ -277,6 +276,8 @@
     margin: -100px -200px;
     text-align: center;
     position: absolute;
+    /* font-weight: 500; */
+    color: rgba(0,0,0,.8);
   }
   #bottom-sheet-shield {
     position: absolute;
@@ -293,10 +294,20 @@
     pointer-events: auto;
     opacity: .8;
   }
+  #instructions {
+    font-weight: 400;
+    color: rgba(0,0,0,.2);
+    font-size: 14px;
+    margin: 16px;
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
   </style>
 </head>
 <body class="launcher">
   <div id="app">
+    <div id="instructions">Press R to see glowing animation.</div>
     <div id="caption">Arcs Launcher</div>
     <div id="bottom-sheet-shield"></div>
 
@@ -306,17 +317,16 @@
       <div class="wrapper">
         <div class="topbar flexbox row border-bottom" type="default">
           <div id="logo" class="button"></div>
-          <div class="spacer flex"></div>
+          <div class="spacer flex">Search recipes</div>
           <div class="buttons flexbox row">
-            <div class="button-search button"><i class="material-icons">search</i></div>
-            <div class="button-more button"><i class="material-icons">more_vert</i></div>
+            <div class="button-search button"><i class="material-icons">keyboard_voice</i></div>
+            <div class="button-more button"><i class="material-icons">settings</i></div>
           </div>
         </div>
         <div class="topbar flexbox row border-bottom" type="search">
           <div class="button-close button"><i class="material-icons">arrow_back</i></div>
-
           <input id="arcs-search" class="flex" placeholder="Search" />
-          <!-- <div class="button-search button"><i class="material-icons">search</i></div>           -->
+          <div class="button-voice button"><i class="material-icons">keyboard_voice</i></div>
         </div>
         <div class="topbar flexbox row border-bottom" type="settings">
           <div class="button-close button"><i class="material-icons">arrow_back</i></div>
@@ -481,11 +491,11 @@
       function navigate(title) {
         // CLOSE SHEET
         $('#caption').text(title);
-        if(title=='Arcs Launcher') {
-          bottomsheet.find('.topbar .spacer').html('');
-        } else {
-          bottomsheet.find('.topbar .spacer').html(title);
-        }
+        // if(title=='Arcs Launcher') {
+        //   bottomsheet.find('.topbar .spacer').html('');
+        // } else {
+        //   bottomsheet.find('.topbar .spacer').html(title);
+        // }
         if( body.hasClass('semi-open') ) {
           updateBottomsheetPosition('semi-open', 'navigating');
         } else if( body.hasClass('open') ) {
