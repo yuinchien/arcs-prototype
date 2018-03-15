@@ -303,6 +303,15 @@
     left: 0;
     top: 0;
   }
+  body.launcher #recipe-title {
+    display: none;
+  }
+    body.launcher #recipe-title .label {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
   </style>
 </head>
 <body class="launcher">
@@ -317,9 +326,9 @@
       <div class="wrapper">
         <div class="topbar flexbox row border-bottom" type="default">
           <div id="logo" class="button"></div>
-          <div class="spacer flex">Search recipes</div>
+          <div class="spacer flex"></div>
           <div class="buttons flexbox row">
-            <div class="button-search button"><i class="material-icons">keyboard_voice</i></div>
+            <div class="button-search button"><i class="material-icons">search</i></div>
             <div class="button-more button"><i class="material-icons">settings</i></div>
           </div>
         </div>
@@ -338,6 +347,10 @@
           <div id="content-default"></div>
           <div id="content-search"></div>
           <div id="content-settings">
+            <div id="recipe-title" class="flexbox flex">
+              <div class="label flex"></div>
+              <div class="button-star button"><i class="material-icons">edit</i></div>
+            </div>
             <div class="flexbox flex">
               <div class="flex">Star this Arc</div>
               <div class="button-star button"><i class="material-icons">star_border</i></div>
@@ -491,6 +504,8 @@
       function navigate(title) {
         // CLOSE SHEET
         $('#caption').text(title);
+        $('#recipe-title .label').text(title);
+
         // if(title=='Arcs Launcher') {
         //   bottomsheet.find('.topbar .spacer').html('');
         // } else {
