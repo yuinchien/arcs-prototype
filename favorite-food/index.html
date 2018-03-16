@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Favorite food</title>
+    <link href="https://fonts.googleapis.com/css?family=Google+Sans:400,500,700" rel="stylesheet">
+    <script src="https://unpkg.com/react@16/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
+    <style>
+    body {
+      font-family: 'Google Sans', sans-serif;
+      margin: 0;
+      padding: 0;
+      color: black;
+      background: #eee;
+    }
+    .caption {
+      text-transform: uppercase;
+      width: 200px;
+      text-align: center;
+      font-size: 24px;
+      /* font-weight: 400; */
+      font-weight: 500;
+      opacity: .8;
+      margin: 24px auto 20px auto;
+      position: relative;
+      padding-bottom: 16px;
+      letter-spacing: .5px;
+    }
+    .caption::after {
+      position: absolute;
+      content: "";
+      bottom: 0;
+      width: 40px;
+      height: 1px;
+      left: 50%;
+      margin-left: -20px;
+      background: rgba(0,0,0,.8);
+    }
+
+    .count {
+      display: none;
+      color: #ff5252;
+    }
+    #list {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      padding: 16px;
+    }
+    #list > div {
+      margin: 16px 0 48px 0;
+      -webkit-transform: translate3d(0,16px,0);
+      /* opacity: 0; */
+      -webkit-transition: .5s opacity, .5s -webkit-transform;
+      width: 50%;
+      cursor: pointer;
+    }
+    #list > div:hover .emoji {
+      -webkit-transform: scale(1.1);
+    }
+    #list > div.selected .border {
+      border-color: #24C1E0;
+    }
+    #list .label {
+      opacity: .5;
+      text-align: center;
+      margin-top: 8px;
+      font-size: 12px;
+      letter-spacing: .4px;
+    }
+    #list .border {
+      position: absolute;
+      width: 160px;
+      height: 160px;
+      top: 50%;
+      left: 50%;
+      -webkit-transform: translate3d(-50%,-50%,0);
+      -webkit-transition: .2s all;
+      border: 4px solid rgba(0,0,0,0);
+      border-radius: 80px;
+      z-index: -1;
+      background: white;
+    }
+    .emoji {
+      margin: 0 auto;
+      background-size: cover;
+      width: 96px;
+      height: 96px;
+      -webkit-transition: .15s all;
+    }
+
+    #list > div.animate-in {
+      -webkit-transform: translate3d(0,0,0);
+      opacity: 1;
+    }
+
+
+    @media (min-width: 560px) {
+      #list > div {
+        width: 33.33%;
+      }
+    }
+    @media (min-width: 720px) {
+      #list > div {
+        width: 25%;
+      }
+    }
+    @media (min-width: 880px) {
+      #list > div {
+        width: 20%;
+      }
+    }
+    @media (min-width: 1040px) {
+      #list > div {
+        width: 16.66%;
+      }
+    }
+    @media (min-width: 1200px) {
+      #list {
+        width: 1160px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+    }
+
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="text/babel">
+
+    class FoodItem extends React.Component {
+      constructor(props) {
+        super(props);
+        this.state = {
+          selected: false,
+          url: '',
+          opacity: 0,
+        };
+        this.id = props.id;
+        this.backgroundLoader(
+          'emoji'+'_'+props.index,
+          this.formatName(props.data.code)
+        );
+      }
+      formatName(unicode) {
+        return 'svg/emoji_'+unicode.replace('+','').toLowerCase()+'.svg';
+      }
+      backgroundLoader(id,url) {
+        var loaded = false;
+        var image = new Image();
+        // this will occur when the image is successfully loaded
+        // no matter if seconds past
+        var me = this;
+        image.onload = function () {
+          loaded = true;
+          me.setState({url: "url(" + url + ")"});
+          setTimeout(function(){
+            me.setState({opacity:1});
+          }, Math.random()*1000);
+        }
+        image.src = url;
+      }
+      click() {
+        this.setState({selected: !this.state.selected});
+      }
+      render(props) {
+        var selectedClassName = (this.state.selected) ? 'selected' : '';
+        return(
+          <div
+            onClick={this.click.bind(this)}
+            className={selectedClassName}
+            key={this.props.index}
+            style={{opacity:this.state.opacity}}>
+            <div className="emoji" style={{backgroundImage:this.state.url}}></div>
+            <div className="label">{this.props.data.name}</div>
+            <div className="border"></div>
+          </div>
+        );
+      }
+    }
+
+    class FavoriteFood extends React.Component {
+
+      constructor(props) {
+        super(props);
+        this.state = {
+          count: 0
+        };
+      }
+
+      foodItems() {
+        let food = [
+          {name: 'Hamburger', code: 'U+1F354'},
+          {name: 'French Fries', code: 'U+1F35F'},
+          {name: 'Pizza', code: 'U+1F355'},
+          {name: 'Sandwich', code: 'U+1F96A'},
+          {name: 'Hot Dog', code: 'U+1F32D'},
+          {name: 'Taco', code: 'U+1F32E'},
+          {name: 'Burrito', code: 'U+1F32F'},
+          {name: 'Cereal', code: 'U+1F963'},
+          {name: 'Salad', code: 'U+1F957'},
+          {name: 'Rice Ball', code: 'U+1F359'},
+          {name: 'Curry Rice', code: 'U+1F35B'},
+          {name: 'Ramen', code: 'U+1F35C'},
+          {name: 'Spaghetti', code: 'U+1F35D'},
+          {name: 'Sushi', code: 'U+1F363'},
+          {name: 'Dumpling', code: 'U+1F95F'},
+          {name: 'Ice Cream', code: 'U+1F368'},
+          {name: 'Doughnut', code: 'U+1F369'},
+          {name: 'Pie', code: 'U+1F967'},
+          {name: 'Chocolate', code: 'U+1F36B'},
+          {name: 'Cookie', code: 'U+1F36A'},
+          {name: 'Candy', code: 'U+1F36C'},
+          {name: 'Egg', code: 'U+1F373'},
+          {name: 'Hot Pot', code: 'U+1F372'},
+          {name: 'Bacon', code: 'U+1F953'},
+          {name: 'Pretzel', code: 'U+1F968'},
+          {name: 'Pancakes', code: 'U+1F95E'},
+          {name: 'Cheese', code: 'U+1F9C0'},
+          {name: 'Croissant', code: 'U+1F950'},
+          {name: 'Broccoli', code: 'U+1F966'},
+          {name: 'Mushroom', code: 'U+1F344'},
+          {name: 'Avocado', code: 'U+1F951'},
+          {name: 'Watermelon', code: 'U+1F349'},
+        ];
+
+        var me = this;
+
+        return food.map(function(data,index) {
+          return(
+            <FoodItem key={index} data={data} />
+          );
+        });
+      }
+
+      render() {
+        return (
+          <div>
+            <div className="caption">Select your favorite food <span className="count">{this.state.count}</span></div>
+            <div id="list">{this.foodItems()}</div>
+          </div>
+        );
+      }
+    }
+
+    ReactDOM.render(
+      <FavoriteFood />,
+      document.getElementById('root')
+    );
+    </script>
+  </body>
+</html>
