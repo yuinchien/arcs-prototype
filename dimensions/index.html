@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link href="https://fonts.googleapis.com/css?family=Space+Mono" rel="stylesheet">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <title>Dimensions</title>
+  <style>
+    body {
+      font-family: 'Space Mono', monospace;
+      font-size: 14px;
+      color: #222;
+      margin: 0;
+      padding: 0;
+    }
+    body.dimension .plane {
+      /* box-shadow: 0 0 8px rgba(0,0,0,.2); */
+      /* height: 400px; */
+    }
+    #planes {
+      display: flex;
+      align-items: center;
+      -webkit-transform: translate3d(-50%,-50%,0);
+      position: absolute;
+      left: 50%;
+      top: 50%;
+    }
+    .plane {
+      width: 200px;
+      height: 200px;
+      -webkit-transition: all .2s;
+      margin-right: 8px;
+      margin-left: 8px;
+    }
+    #button-rotate {
+      position: absolute;
+      right: 0;
+      top: 0;
+      color: blue;
+      padding: 4px 8px;
+      background-color: blue;
+      color: white;
+      cursor: pointer;
+    }
+    #plane-1 {
+      border-radius: 50%;
+      width: 214px;
+      height: 214px;
+
+    }
+    #plane-2 {
+      width: 0;
+    	height: 0;
+    	border-left: 120px solid transparent;
+    	border-bottom: 200px solid #1DE9B6;
+    	border-right: 120px solid transparent;
+      background: none!important;
+      margin-left: -20px;
+    }
+    #plane-3 {
+      border-bottom: 200px solid #1DE9B6;
+    	border-left: 80px solid transparent;
+    	border-right: 0px solid transparent;
+    	height: 0;
+    	width: 160px;
+      background: none !important;
+    }
+
+  </style>
+</head>
+
+<body>
+  <div id="planes"></div>
+  <div id="button-rotate" class="button">ROTATE</div>
+  <script>
+  var planes = [];
+  var rotate =  {x: 60, y:0, z:60};
+  var flag3D = false;
+  var steps = 6;
+  var count = 0;
+  var PLANE_WIDTH = 200;
+  var PLANE_COLORS = ['#A7FFEB','#64FFDA','#1DE9B6','#00BFA5'];
+
+  function Plane(index) {
+    this.metrix = {x:-index*PLANE_WIDTH/7*6, y: -60*index};
+    this.index = index;
+    this.dom = this.init();
+  }
+  Plane.prototype.init = function(){
+    var dom = $('<div class="plane"></div>');
+    dom.attr('id', 'plane-'+this.index);
+    dom.css('background',PLANE_COLORS[this.index]);
+    $('#planes').append(dom);
+    return dom;
+  }
+
+  function animatePlane(plane,metrix,cnt) {
+    if(flag3D) {
+      plane.css('WebkitTransform',
+        'translate3d(' +
+        Math.round( metrix.x/steps*cnt ) + 'px,' +
+        Math.round( metrix.y/steps*cnt ) + 'px,' +
+        '0) ' +
+        'rotateX(' + rotate.x/steps*cnt + 'deg) ' + 'rotateZ(' + rotate.z/steps*cnt + 'deg)'
+      );
+    } else {
+      plane.css('WebkitTransform',
+        'translate3d(' +
+        Math.round( metrix.x - metrix.x/steps*cnt ) + 'px,' +
+        Math.round( metrix.y - metrix.y/steps*cnt ) + 'px,' +
+        '0) ' +
+        'rotateX(' + rotate.x/steps*(steps-cnt) + 'deg) ' + 'rotateZ(' + rotate.z/steps*(steps-cnt) + 'deg)'
+      );
+    }
+  }
+
+  function animate() {
+    for(var i=0; i<planes.length; i++) {
+      var p = planes[i];
+      animatePlane(p.dom, p.metrix, count);
+    }
+    count++;
+    if(count<=steps) {
+      setTimeout(function(){
+        animate();
+      },100);
+    } else {
+      count = 0;
+    }
+  }
+
+  $(document).ready(function(){
+    for(var i=0; i<3; i++) {
+      planes.push( new Plane(i) );
+    }
+    $('#button-rotate').click(function(){
+      flag3D = !flag3D;
+      $('body').toggleClass('dimension',flag3D);
+      animate();
+    });
+  });
+  </script>
+
+</body>
+</html>

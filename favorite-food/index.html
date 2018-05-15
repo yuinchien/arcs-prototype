@@ -156,10 +156,12 @@
         var me = this;
         image.onload = function () {
           loaded = true;
-          me.setState({url: "url(" + url + ")"});
+          var urlString = "url(" + url + ")";
+          me.setState({url: urlString});
           setTimeout(function(){
-            me.setState({opacity:1});
-          }, Math.random()*1000);
+            this.setState({opacity:1});
+          }, Math.random()*1200);
+          console.log('loaded', url);
         }
         image.src = url;
       }
@@ -167,13 +169,12 @@
         this.setState({selected: !this.state.selected});
       }
       render(props) {
-        var selectedClassName = (this.state.selected) ? 'selected' : '';
+
         return(
           <div
             onClick={this.click.bind(this)}
-            className={selectedClassName}
-            key={this.props.index}
-            style={{opacity:this.state.opacity}}>
+            className={this.state.selectedClassName}
+            key={this.props.index}>
             <div className="emoji" style={{backgroundImage:this.state.url}}></div>
             <div className="label">{this.props.data.name}</div>
             <div className="border"></div>
